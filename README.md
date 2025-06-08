@@ -21,7 +21,7 @@ This makes it super simple to get cool facts about any list of cities you provid
 
 1. Open the Python notebook (`julep_city_facts.ipynb`).
 2. Run the notebook cells.
-3. input your list of city names as an array (in the first line maybe, or on a later cell), for example:
+3. input your list of city names as an array (in the first line maybe, or on the later cell where locations are defined), for example:
    ```python
    ["New York", "London", "Paris"]
 
