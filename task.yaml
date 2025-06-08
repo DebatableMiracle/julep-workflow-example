@@ -1,0 +1,112 @@
+name: City Cool Facts Discovery
+description: |
+  A workflow that searches Wikipedia (and if time permits reddit!) for information about cities and extracts
+  three cool facts for each city, formatted as friendly "Did-you-know?" blurbs.
+
+input_schema:
+  type: object
+  properties:
+    cities:
+      type: array
+      items:
+        type: string
+      description: List of city names to research
+  required:
+    - cities
+
+tools:
+  - name: web_search
+    type: integration
+    integration:
+      provider: brave
+      setup:
+        api_key: $BRAVE_API_KEY
+
+main:
+  - over: inputs[0].cities
+    map:
+      - evaluate:
+          city_name: _
+      
+      # Step 1: Search for city information on the web
+      - tool: web_search
+        arguments:
+          query: $("Wikipedia " + _.city_name + " city facts history landmarks")
+      
+      # Step 2: Extract and analyze city information
+      - prompt:
+          - role: system
+            content: |
+              You are a travel expert tasked with finding interesting facts about cities.
+              
+              Based on the search results about {{_.city_name}}, please:
+              1. Identify THREE of the most interesting, surprising, or cool facts about this city
+              2. These could be historical events, unique landmarks, cultural traditions, 
+                 geographical features, famous people, local legends, or unusual trivia
+              3. Focus on facts that would genuinely surprise or interest a visitor
+              4. Avoid commonly known information
+              
+              Search Results:
+              {{_}}
+              
+              Please return your response in the following JSON format:
+              {
+                "city": "{{_.city_name}}",
+                "facts": [
+                  {
+                    "fact": "Brief description of the cool fact"
+                  },
+                  {
+                    "fact": "Brief description of the cool fact"
+                  },
+                  {
+                    "fact": "Brief description of the cool fact"
+                  }
+                ]
+              }
+        unwrap: true
+      
+      # Step 3: Format the final friendly blurbs
+      - prompt:
+          - role: system
+            content: |
+              Take the following facts about {{_.city_name}} and create three engaging,
+              conversational "Did-you-know?" blurbs that would be perfect for sharing
+              with friends or posting on social media.
+              
+              Make each blurb:
+              - Friendly and conversational in tone
+              - Informative but easy to read
+              - Around 2-3 sentences each
+              - Starting with "Did you know..."
+              
+              Facts to format:
+              {{_}}
+              
+              Return as a clean JSON object with the city name and three formatted blurbs.
+              Format:
+              {
+                "city": "City Name",
+                "facts": [
+                  {
+                    "question": "Did you know that...",
+                    "answer": "Detailed explanation of the cool fact"
+                  },
+                  {
+                    "question": "Did you know that...",
+                    "answer": "Detailed explanation of the cool fact"
+                  },
+                  {
+                    "question": "Did you know that...",
+                    "answer": "Detailed explanation of the cool fact"
+                  }
+                ]
+              }
+        unwrap: true
+
+  # Combine all city results
+  - evaluate:
+      city_facts: $[_.city_facts for _ in outputs if _.city_facts]
+  
+  - return:
+      city_facts: _.city_facts
