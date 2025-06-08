@@ -21,14 +21,17 @@ tools:
       provider: brave
       setup:
         api_key: $BRAVE_API_KEY
-
+  - name: Wikipedia_search
+    type: integration
+    integration:
+      provider: wikipedia
+# check the docs for the wikipedia integration, i remember it being a bit there
 main:
   - over: inputs[0].cities
     map:
       - evaluate:
           city_name: _
       
-      # Step 1: Search for city information on the web
       - tool: web_search
         arguments:
           query: $("Wikipedia " + _.city_name + " city facts history landmarks")

@@ -4,7 +4,7 @@ import time
 def city_facts_workflow():
     """Complete working city facts workflow using Julep"""
     
-    print(" City Facts Workflow")
+    print("🌍 City Facts Workflow")
     print("=" * 50)
     
     # Initialize the Julep client
